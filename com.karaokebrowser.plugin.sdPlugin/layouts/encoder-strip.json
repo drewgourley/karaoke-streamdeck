@@ -1,0 +1,13 @@
+{
+    "id": "encoder-strip",
+    "items": [
+        {
+            "key": "full",
+            "type": "pixmap",
+            "rect": [0, 0, 200, 100],
+            "zOrder": 0,
+            "enabled": true,
+            "opacity": 1
+        }
+    ]
+}

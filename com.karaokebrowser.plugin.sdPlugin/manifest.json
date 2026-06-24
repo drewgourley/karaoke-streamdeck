@@ -1,0 +1,150 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "UUID": "com.karaokebrowser.plugin",
+  "Name": "Karaoke Browser",
+  "Author": "Karaoke Browser",
+  "Version": "1.0.0.0",
+  "Description": "Control Karaoke Browser from your Stream Deck. Play, pause, skip, adjust volumes, and switch modes without touching a keyboard.",
+  "Category": "Karaoke Browser",
+  "CategoryIcon": "imgs/plugin/icon",
+  "Icon": "imgs/plugin/icon",
+  "CodePath": "bin/plugin.js",
+  "SDKVersion": 2,
+  "Software": { "MinimumVersion": "6.6" },
+  "OS": [
+    { "Platform": "windows", "MinimumVersion": "10" },
+    { "Platform": "mac", "MinimumVersion": "13" }
+  ],
+  "Nodejs": { "Version": "20" },
+  "PropertyInspectorPath": "ui/inspector.html",
+  "Actions": [
+    {
+      "Name": "Play / Pause",
+      "UUID": "com.karaokebrowser.plugin.toggle-pause",
+      "Icon": "imgs/actions/toggle-pause/icon",
+      "Tooltip": "Toggle play/pause for the current karaoke song",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        { "Image": "imgs/actions/toggle-pause/key", "Name": "Playing" },
+        { "Image": "imgs/actions/toggle-pause/key", "Name": "Paused"  }
+      ]
+    },
+    {
+      "Name": "Skip Song",
+      "UUID": "com.karaokebrowser.plugin.skip",
+      "Icon": "imgs/actions/skip/icon",
+      "Tooltip": "Skip to the next song in the queue",
+      "Controllers": ["Keypad"],
+      "States": [{ "Image": "imgs/actions/skip/key" }]
+    },
+    {
+      "Name": "Restart Song",
+      "UUID": "com.karaokebrowser.plugin.restart",
+      "Icon": "imgs/actions/restart/icon",
+      "Tooltip": "Restart the current song from the beginning",
+      "Controllers": ["Keypad"],
+      "States": [{ "Image": "imgs/actions/restart/key" }]
+    },
+    {
+      "Name": "Requeue Song",
+      "UUID": "com.karaokebrowser.plugin.requeue",
+      "Icon": "imgs/actions/requeue/icon",
+      "Tooltip": "Send the current song to the end of the queue and play the next one",
+      "Controllers": ["Keypad"],
+      "States": [{ "Image": "imgs/actions/requeue/key" }]
+    },
+    {
+      "Name": "Player Mode",
+      "UUID": "com.karaokebrowser.plugin.player-mode",
+      "Icon": "imgs/actions/player-mode/icon",
+      "Tooltip": "Toggle between Standby and Karaoke mode",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        { "Image": "imgs/actions/player-mode/key", "Name": "Karaoke" },
+        { "Image": "imgs/actions/player-mode/key", "Name": "Standby" }
+      ]
+    },
+    {
+      "Name": "Standby Play/Pause",
+      "UUID": "com.karaokebrowser.plugin.standby-playpause",
+      "Icon": "imgs/actions/standby-playpause/icon",
+      "Tooltip": "Toggle play/pause for standby background music",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        { "Image": "imgs/actions/standby-playpause/key", "Name": "Playing" },
+        { "Image": "imgs/actions/standby-playpause/key", "Name": "Paused"  }
+      ]
+    },
+    {
+      "Name": "Standby Skip",
+      "UUID": "com.karaokebrowser.plugin.standby-skip",
+      "Icon": "imgs/actions/standby-skip/icon",
+      "Tooltip": "Skip the current standby background music track",
+      "Controllers": ["Keypad"],
+      "States": [{ "Image": "imgs/actions/standby-skip/key" }]
+    },
+    {
+      "Name": "Mic Mute",
+      "UUID": "com.karaokebrowser.plugin.mic-mute",
+      "Icon": "imgs/actions/mic-mute/icon",
+      "Tooltip": "Toggle microphone mute on/off",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        { "Image": "imgs/actions/mic-mute/key", "Name": "Active" },
+        { "Image": "imgs/actions/mic-mute/key", "Name": "Muted"  }
+      ]
+    },
+    {
+      "Name": "Video Volume",
+      "UUID": "com.karaokebrowser.plugin.video-volume",
+      "Icon": "imgs/actions/video-volume/icon",
+      "Tooltip": "Adjust karaoke video volume. Rotate to change, press to reset to 100%.",
+      "Controllers": ["Encoder"],
+      "Encoder": {
+        "layout": "layouts/encoder-strip.json",
+        "TriggerDescription": {
+          "Rotate": "Adjust video volume",
+          "Push": "Reset to 100%",
+          "Touch": "Show current level"
+        }
+      },
+      "States": [{ "Image": "imgs/actions/video-volume/key" }]
+    },
+    {
+      "Name": "Standby Volume",
+      "UUID": "com.karaokebrowser.plugin.standby-volume",
+      "Icon": "imgs/actions/standby-volume/icon",
+      "Tooltip": "Adjust standby music volume. Rotate to change, press to reset to 50%.",
+      "Controllers": ["Encoder"],
+      "Encoder": {
+        "layout": "layouts/encoder-strip.json",
+        "TriggerDescription": {
+          "Rotate": "Adjust standby music volume",
+          "Push": "Reset to 50%",
+          "Touch": "Show current level"
+        }
+      },
+      "States": [{ "Image": "imgs/actions/standby-volume/key" }]
+    },
+    {
+      "Name": "Mic Volume",
+      "UUID": "com.karaokebrowser.plugin.mic-volume",
+      "Icon": "imgs/actions/mic-volume/icon",
+      "Tooltip": "Adjust microphone volume. Rotate to change, press to reset to 100%.",
+      "Controllers": ["Encoder"],
+      "Encoder": {
+        "layout": "layouts/encoder-strip.json",
+        "TriggerDescription": {
+          "Rotate": "Adjust mic volume",
+          "Push": "Reset to 100%",
+          "Touch": "Show current level"
+        }
+      },
+      "States": [{ "Image": "imgs/actions/mic-volume/key" }]
+    }
+  ]
+}

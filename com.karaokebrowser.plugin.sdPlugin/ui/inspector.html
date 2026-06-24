@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!--
+    sdpi-components: download the local copy with:
+      curl -L https://sdpi-components.dev/releases/v4/sdpi-components.js -o ui/sdpi-components.js
+    Then change the src below to "sdpi-components.js"
+  -->
+  <script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+  <style>
+    :root {
+      --sdpi-bgcolor: #1e1e1e;
+      --sdpi-color: #d4d4d4;
+    }
+    body {
+      margin: 0;
+      padding: 0 8px;
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+      background: var(--sdpi-bgcolor);
+      color: var(--sdpi-color);
+    }
+    .section-header {
+      margin: 14px 0 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.5;
+    }
+    .hint {
+      margin: 2px 0 8px;
+      font-size: 11px;
+      opacity: 0.55;
+      line-height: 1.4;
+    }
+    sdpi-item[label]::part(label) {
+      min-width: 90px;
+    }
+  </style>
+</head>
+<body>
+  <div class="section-header">Connection</div>
+  <p class="hint">These settings apply to <strong>all buttons</strong> — set them once here.</p>
+
+  <sdpi-item label="Server URL">
+    <sdpi-textfield
+      setting="serverUrl"
+      global
+      placeholder="http://localhost:3444"
+      pattern="https?://.+"
+    ></sdpi-textfield>
+  </sdpi-item>
+  <p class="hint">Address of your Karaoke Browser server, e.g. <code>http://192.168.1.10:3444</code></p>
+
+  <sdpi-item label="Session ID">
+    <sdpi-textfield
+      setting="sessionId"
+      global
+      placeholder="Paste session ID here"
+    ></sdpi-textfield>
+  </sdpi-item>
+  <p class="hint">Find the session ID in the Karaoke Browser ingress page URL or QR scan link.</p>
+
+  <sdpi-item label="Auth Token">
+    <sdpi-textfield
+      setting="authToken"
+      global
+      placeholder="Leave empty if server has no AUTH_TOKEN"
+      type="password"
+    ></sdpi-textfield>
+  </sdpi-item>
+  <p class="hint">Plaintext token matching the <code>AUTH_TOKEN</code> env var on your server. Leave blank for unauthenticated servers.</p>
+
+  <div id="dial-options">
+    <div class="section-header">Dial Options</div>
+
+    <sdpi-item label="Volume Step">
+      <sdpi-range
+        setting="step"
+        min="1"
+        max="20"
+        step="1"
+        default="5"
+      ></sdpi-range>
+    </sdpi-item>
+    <p class="hint">How much volume changes per dial tick (1–20, default 5).</p>
+  </div>
+
+  <script>
+    // Show "Dial Options" only for encoder actions; hide for key-only actions.
+    const ENCODER_UUIDS = [
+      "com.karaokebrowser.plugin.video-volume",
+      "com.karaokebrowser.plugin.standby-volume",
+      "com.karaokebrowser.plugin.mic-volume",
+    ];
+
+    document.addEventListener("connected", (/** @type {CustomEvent} */ e) => {
+      const actionInfo = e.detail?.actionInfo ?? e.detail;
+      const uuid = actionInfo?.action ?? "";
+      const dialSection = document.getElementById("dial-options");
+      if (dialSection) {
+        dialSection.style.display = ENCODER_UUIDS.includes(uuid) ? "" : "none";
+      }
+    });
+  </script>
+</body>
+</html>
