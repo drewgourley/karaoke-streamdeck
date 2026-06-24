@@ -63,15 +63,15 @@
   </sdpi-item>
   <p class="hint">Find the session ID in the Karaoke Browser ingress page URL or QR scan link.</p>
 
-  <sdpi-item label="Auth Token">
+  <sdpi-item label="Password">
     <sdpi-textfield
       setting="authToken"
       global
-      placeholder="Leave empty if server has no AUTH_TOKEN"
+      placeholder="Leave empty if server has is configured for open access"
       type="password"
     ></sdpi-textfield>
   </sdpi-item>
-  <p class="hint">Plaintext token matching the <code>AUTH_TOKEN</code> env var on your server. Leave blank for unauthenticated servers.</p>
+  <p class="hint">Plaintext token matching the <code>password</code> for your server (It may look like a long token string). Leave blank for unauthenticated servers.</p>
 
   <div id="dial-options">
     <div class="section-header">Dial Options</div>
