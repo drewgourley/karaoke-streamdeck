@@ -7,17 +7,19 @@ const ACCENT = "#e65100";
 
 @action({ UUID: "com.karaokebrowser.plugin.restart" })
 export class RestartAction extends SingletonAction {
+	private inKaraokeMode = true;
 	private hasTrack = false;
 
+	private label(): string {
+		return !this.inKaraokeMode ? "On Standby" : this.hasTrack ? "Restart" : "No Song";
+	}
+
 	private readonly onState: StateCallback = (state: KaraokeState) => {
+		this.inKaraokeMode = state.playerMode !== "standby";
 		this.hasTrack = !!state.nowPlaying;
 		this.actions.forEach((act) => {
 			if (!act.isKey()) return;
-			act.setImage(svgToDataUrl(renderKeyButton({
-				emoji: "⏮",
-				label: this.hasTrack ? "Restart" : "No Song",
-				accentColor: ACCENT,
-			})));
+			act.setImage(svgToDataUrl(renderKeyButton({ emoji: "⏮", label: this.label(), accentColor: ACCENT })));
 		});
 	};
 
@@ -25,7 +27,7 @@ export class RestartAction extends SingletonAction {
 		const { serverUrl = "", sessionId = "", authToken = "" } = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 		if (ev.action.isKey()) {
 			ev.action.setTitle("");
-			ev.action.setImage(svgToDataUrl(renderKeyButton({ emoji: "⏮", label: this.hasTrack ? "Restart" : "No Song", accentColor: ACCENT })));
+			ev.action.setImage(svgToDataUrl(renderKeyButton({ emoji: "⏮", label: this.label(), accentColor: ACCENT })));
 		}
 		subscribe(serverUrl, sessionId, authToken, this.onState);
 	}
@@ -35,7 +37,7 @@ export class RestartAction extends SingletonAction {
 	}
 
 	override async onKeyDown(ev: KeyDownEvent): Promise<void> {
-		if (!this.hasTrack) { await ev.action.showAlert(); return; }
+		if (!this.inKaraokeMode || !this.hasTrack) { await ev.action.showAlert(); return; }
 		const { serverUrl = "", sessionId = "", authToken = "" } = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 		if (!serverUrl || !sessionId) { await ev.action.showAlert(); return; }
 		const ok = deckAction(serverUrl, sessionId, authToken, "restart");

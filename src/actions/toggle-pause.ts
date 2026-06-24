@@ -7,25 +7,39 @@ const ACCENT = "#1565c0";
 
 @action({ UUID: "com.karaokebrowser.plugin.toggle-pause" })
 export class TogglePauseAction extends SingletonAction {
+	private inKaraokeMode = true;
+	private paused = false;
+	private hasTrack = false;
+
 	private readonly onState: StateCallback = (state: KaraokeState) => {
-		const paused = !!state.paused;
-		const hasTrack = !!state.nowPlaying;
+		this.inKaraokeMode = state.playerMode !== "standby";
+		this.paused = !!state.paused;
+		this.hasTrack = !!state.nowPlaying;
 		this.actions.forEach((act) => {
 			if (!act.isKey()) return;
 			act.setImage(svgToDataUrl(renderKeyButton({
-				emoji: paused ? "▶️" : "⏸",
-				label: hasTrack ? (paused ? "Begin" : "Pause") : "No Song",
+				emoji: this.paused ? "▶️" : "⏸",
+				label: !this.inKaraokeMode ? "On Standby" : this.hasTrack ? (this.paused ? "Begin" : "Pause") : "No Song",
 				accentColor: ACCENT,
-				active: paused && hasTrack,
+				active: this.inKaraokeMode && this.paused && this.hasTrack,
 			})));
 		});
 	};
+
+	private keyLabel(): string {
+		return !this.inKaraokeMode ? "On Standby" : this.hasTrack ? (this.paused ? "Begin" : "Pause") : "No Song";
+	}
 
 	override async onWillAppear(ev: WillAppearEvent): Promise<void> {
 		const { serverUrl = "", sessionId = "", authToken = "" } = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 		if (ev.action.isKey()) {
 			ev.action.setTitle("");
-			ev.action.setImage(svgToDataUrl(renderKeyButton({ emoji: "⏸", label: "Pause", accentColor: ACCENT })));
+			ev.action.setImage(svgToDataUrl(renderKeyButton({
+				emoji: this.paused ? "▶️" : "⏸",
+				label: this.keyLabel(),
+				accentColor: ACCENT,
+				active: this.inKaraokeMode && this.paused && this.hasTrack,
+			})));
 		}
 		subscribe(serverUrl, sessionId, authToken, this.onState);
 	}
@@ -35,6 +49,7 @@ export class TogglePauseAction extends SingletonAction {
 	}
 
 	override async onKeyDown(ev: KeyDownEvent): Promise<void> {
+		if (!this.inKaraokeMode) { await ev.action.showAlert(); return; }
 		const { serverUrl = "", sessionId = "", authToken = "" } = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 		if (!serverUrl || !sessionId) { await ev.action.showAlert(); return; }
 		const ok = deckAction(serverUrl, sessionId, authToken, "toggle-pause");
