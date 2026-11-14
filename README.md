@@ -1,6 +1,6 @@
 # Karaoke Browser — Stream Deck Plugin
 
-A Stream Deck plugin for [Karaoke Browser](https://github.com/your-org/karaoke-browser) that gives the host full mixer control from their deck without touching a keyboard.
+A Stream Deck plugin for [Karaoke Browser](https://github.com/drewgourley/karaoke-browser) that gives the host full mixer control from their deck without touching a keyboard.
 
 ## Actions
 
@@ -23,7 +23,7 @@ All key buttons render a live SVG preview on the key face showing the current st
 ## Requirements
 
 - [Stream Deck](https://www.elgato.com/stream-deck) hardware with Stream Deck app ≥ 6.6
-- [Karaoke Browser](https://github.com/your-org/karaoke-browser) server running and accessible
+- [Karaoke Browser](https://github.com/drewgourley/karaoke-browser) server running and accessible
 - [Node.js](https://nodejs.org/) 20+ (for building from source)
 
 ## Installation
@@ -31,7 +31,7 @@ All key buttons render a live SVG preview on the key face showing the current st
 ### From source
 
 ```bash
-git clone https://github.com/your-org/karaoke-streamdeck.git
+git clone https://github.com/drewgourley/karaoke-streamdeck.git
 cd karaoke-streamdeck
 npm install
 npm run build
@@ -76,3 +76,12 @@ preview/
 ```
 
 > **Note:** `com.karaokebrowser.plugin.sdPlugin/bin/plugin.js` and `preview/button-renderer.js` are build artifacts. Run `npm run build` to generate them.
+
+## Disclaimer
+
+This is an independent project. It is not affiliated with, endorsed by or sponsored by Elgato, Corsair or YouTube. Stream Deck is a
+trademark of its owner, and YouTube is a trademark of Google LLC. Other product names are used only to say what this plugin works with.
+
+## License
+
+Released under the [MIT License](LICENSE).

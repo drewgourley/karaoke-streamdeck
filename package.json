@@ -1,6 +1,7 @@
 {
   "name": "karaoke-browser-streamdeck",
   "version": "1.0.0",
+  "license": "MIT",
   "description": "Stream Deck plugin for Karaoke Browser",
   "scripts": {
     "icons": "node scripts/create-icons.mjs",
