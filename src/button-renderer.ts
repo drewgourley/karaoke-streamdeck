@@ -2,6 +2,8 @@
  * button-renderer.ts
  *
  * Canonical source for all button visuals in the plugin.
+ * The preview page (preview/index.html) uses the JS-equivalent inline;
+ * keep both in sync when changing styles.
  *
  * Stream Deck key buttons: 72×72 px
  * Stream Deck + encoder strips ($B2 layout): 200×100 px
@@ -165,5 +167,10 @@ export function renderEncoderStrip(opts: EncoderStripOptions): string {
 // ---------------------------------------------------------------------------
 
 export function svgToDataUrl(svg: string): string {
-	return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+	// Node.js plugin context: base64 via Buffer.
+	// Browser preview context: percent-encode (Buffer not available).
+	if (typeof Buffer !== "undefined") {
+		return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+	}
+	return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
