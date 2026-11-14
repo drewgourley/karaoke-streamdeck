@@ -5,9 +5,6 @@ node_modules/
 com.karaokebrowser.plugin.sdPlugin/bin
 com.karaokebrowser.plugin.sdPlugin/logs
 
-# Dev tools
-preview
-
 # OS
 .DS_Store
 Thumbs.db

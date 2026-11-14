@@ -24,16 +24,5 @@ export default [
 			typescript({ tsconfig: "./tsconfig.json" })
 		],
 		external: nodeExternal
-	},
-	// ── 2. Button renderer (browser IIFE — consumed by preview/index.html) ────
-	{
-		input: "src/button-renderer.ts",
-		output: {
-			file: "preview/button-renderer.js",
-			format: "iife",
-			name: "BtnRenderer",
-			sourcemap: false
-		},
-		plugins: [ typescript({ tsconfig: "./tsconfig.json", sourceMap: false }) ]
 	}
 ];

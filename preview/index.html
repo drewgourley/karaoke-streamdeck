@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Stream Deck Button Preview — Karaoke Browser</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0b111c;
+    --surface: #111926;
+    --surface2: #1a2436;
+    --border: #1f3050;
+    --text: #cdd9e8;
+    --muted: #4a6480;
+    --accent: #1e88e5;
+    --radius: 8px;
+    --gap: 12px;
+
+    /* ── per-action accent colours (editable via colour pickers) ── */
+    --c-toggle-pause:     #1565c0;
+    --c-skip:             #00838f;
+    --c-restart:          #e65100;
+    --c-requeue:          #6a1b9a;
+    --c-player-mode:      #ad1457;
+    --c-standby-playpause:#006064;
+    --c-standby-skip:     #00695c;
+    --c-mic-mute:         #b71c1c;
+    --c-video-vol:        #283593;
+    --c-standby-vol:      #00695c;
+    --c-mic-vol:          #880e4f;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 13px;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 220px 1fr 240px;
+    grid-template-rows: 48px 1fr;
+    grid-template-areas:
+      "header header header"
+      "state  main   style";
+  }
+
+  /* ── Header ── */
+  header {
+    grid-area: header;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
+  }
+  header h1 { font-size: 14px; font-weight: 600; letter-spacing: 0.02em; }
+  header span { font-size: 11px; color: var(--muted); }
+  .badge {
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 99px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Sidebars ── */
+  aside {
+    padding: 16px 14px;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+  }
+  aside:last-child { border-right: none; border-left: 1px solid var(--border); }
+
+  .panel-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .panel-section { margin-bottom: 20px; }
+
+  .control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+  .control-label { color: var(--text); font-size: 12px; flex: 1; }
+  .control-sub { color: var(--muted); font-size: 11px; }
+
+  /* Toggle switch */
+  .toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .toggle input:checked ~ .toggle-track { background: var(--accent); border-color: var(--accent); }
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    left: 2px; top: 2px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.15s;
+  }
+  .toggle input:checked ~ .toggle-track::after { transform: translateX(16px); }
+
+  /* Range slider */
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    height: 4px;
+    border-radius: 2px;
+  }
+  .range-row { flex-direction: column; align-items: stretch; }
+  .range-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .range-val { font-size: 11px; color: var(--accent); font-weight: 600; }
+
+  /* Colour swatch */
+  .swatch-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .swatch-label { font-size: 11px; color: var(--text); }
+  input[type=color] {
+    width: 30px; height: 22px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: none;
+    cursor: pointer;
+    padding: 1px;
+  }
+
+  /* ── Main canvas area ── */
+  main {
+    grid-area: main;
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* ── Button grid ── */
+  .btn-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .btn-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .btn-cell:hover .btn-canvas-wrap { outline: 1px solid var(--accent); border-radius: 8px; }
+  .btn-canvas-wrap {
+    border-radius: 7px;
+    overflow: hidden;
+    outline: 1px solid transparent;
+    transition: outline-color 0.1s;
+  }
+  .btn-canvas-wrap canvas { display: block; }
+  .btn-name {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.3;
+  }
+  .btn-state-badge {
+    font-size: 9px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 1px 6px;
+    margin-top: 2px;
+  }
+  .btn-state-badge.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── Encoder strips ── */
+  .encoder-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .enc-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .enc-canvas-wrap {
+    border-radius: 6px;
+    overflow: hidden;
+    outline: 1px solid var(--border);
+  }
+
+  /* ── State indicator bar at bottom ── */
+  .state-bar {
+    grid-area: state;
+    padding: 0;
+  }
+  aside[data-panel="state"] { grid-area: state; }
+  aside[data-panel="style"] { grid-area: style; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Stream Deck Button Preview</h1>
+  <span>Karaoke Browser Plugin</span>
+  <div class="badge">LIVE</div>
+  <span style="margin-left:auto; color:var(--muted); font-size:11px;">Click a button to toggle its state</span>
+</header>
+
+<!-- ── LEFT: State simulation ── -->
+<aside data-panel="state">
+  <div class="panel-section">
+    <div class="panel-title">Playback State</div>
+
+    <div class="control-row">
+      <span class="control-label">Song paused</span>
+      <label class="toggle"><input type="checkbox" id="st-paused"><span class="toggle-track"></span></label>
+    </div>
+    <div class="control-row">
+      <span class="control-label">Now playing</span>
+      <input id="st-nowplaying" type="checkbox" checked style="accent-color:var(--accent)">
+    </div>
+    <div class="control-row">
+      <span class="control-label">Player mode</span>
+      <label class="toggle"><input type="checkbox" id="st-mode" checked><span class="toggle-track"></span></label>
+    </div>
+    <div class="control-row" style="margin-left:8px">
+      <span class="control-sub" id="mode-label">Karaoke</span>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-title">Standby Music</div>
+    <div class="control-row">
+      <span class="control-label">Standby paused</span>
+      <label class="toggle"><input type="checkbox" id="st-standbypaused"><span class="toggle-track"></span></label>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-title">Mic</div>
+    <div class="control-row">
+      <span class="control-label">Mic muted</span>
+      <label class="toggle"><input type="checkbox" id="st-micmuted"><span class="toggle-track"></span></label>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-title">Volumes</div>
+
+    <div class="control-row range-row">
+      <div class="range-header">
+        <span class="control-label">Video volume</span>
+        <span class="range-val" id="lbl-vidvol">100</span>
+      </div>
+      <input type="range" id="st-vidvol" min="0" max="100" value="100">
+    </div>
+
+    <div class="control-row range-row" style="margin-top:10px">
+      <div class="range-header">
+        <span class="control-label">Standby volume</span>
+        <span class="range-val" id="lbl-standvol">50</span>
+      </div>
+      <input type="range" id="st-standvol" min="0" max="100" value="50">
+    </div>
+
+    <div class="control-row range-row" style="margin-top:10px">
+      <div class="range-header">
+        <span class="control-label">Mic volume</span>
+        <span class="range-val" id="lbl-micvol">100</span>
+      </div>
+      <input type="range" id="st-micvol" min="0" max="100" value="100">
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN: Button previews ── -->
+<main>
+  <div>
+    <div class="section-label">Key Buttons</div>
+    <div class="btn-grid" id="key-grid"></div>
+  </div>
+  <div>
+    <div class="section-label">Encoder Dials (Stream Deck+  ·  $B2 layout)</div>
+    <div class="encoder-grid" id="enc-grid"></div>
+  </div>
+</main>
+
+<!-- ── RIGHT: Style customisation ── -->
+<aside data-panel="style">
+  <div class="panel-section">
+    <div class="panel-title">Accent Colours</div>
+    <div id="swatch-panel"></div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-title">Display Scale</div>
+    <div class="control-row range-row">
+      <div class="range-header">
+        <span class="control-label">Button size</span>
+        <span class="range-val" id="lbl-scale">2×</span>
+      </div>
+      <input type="range" id="ctl-scale" min="1" max="4" step="0.5" value="2">
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-title">Export</div>
+    <button id="btn-export" style="
+      width:100%; padding:8px; border-radius:6px;
+      background:var(--surface2); border:1px solid var(--border);
+      color:var(--text); cursor:pointer; font-size:12px;
+    ">Copy SVG for selected button</button>
+    <div id="export-out" style="
+      margin-top:8px; font-size:10px; color:var(--muted);
+      word-break:break-all; max-height:80px; overflow-y:auto;
+    "></div>
+  </div>
+</aside>
+
+<script src="button-renderer.js"></script>
+<script>
+// renderKeyButton, renderEncoderStrip and svgToDataUrl are the canonical
+// implementations compiled from src/button-renderer.ts by `npm run build`.
+// No manual sync needed — edit the TypeScript source only.
+const { renderKeyButton, renderEncoderStrip, svgToDataUrl: svgToImg } = BtnRenderer;
+
+// ============================================================
+//  APP STATE
+// ============================================================
+
+const state = {
+  paused: false, nowPlaying: true, karaoke: true,
+  standbyPaused: false, micMuted: false,
+  videoVol: 100, standbyVol: 50, micVol: 100
+};
+
+let displayScale = 2;
+let selectedId = null;
+
+// per-action colours (editable)
+const colours = {
+  'toggle-pause': '#1565c0', 'skip': '#00838f', 'restart': '#e65100',
+  'requeue': '#6a1b9a', 'player-mode': '#ad1457',
+  'standby-playpause': '#006064', 'standby-skip': '#00695c',
+  'mic-mute': '#b71c1c', 'video-vol': '#283593',
+  'standby-vol': '#00695c', 'mic-vol': '#880e4f'
+};
+
+// ============================================================
+//  BUTTON DEFINITIONS
+// ============================================================
+
+function getKeyDefs() {
+  const { paused, nowPlaying, karaoke, standbyPaused, micMuted } = state;
+  return [
+    {
+      id: 'toggle-pause',
+      name: 'Play / Pause',
+      emoji: paused ? '▶' : '⏸',
+      label: nowPlaying ? (paused ? 'Begin' : 'Pause') : 'No Song',
+      active: paused && nowPlaying,
+    },
+    {
+      id: 'player-mode',
+      name: 'Player Mode',
+      emoji: karaoke ? '🎤' : '📺',
+      label: karaoke ? 'Karaoke' : 'Standby',
+      active: !karaoke,
+    },
+    {
+      id: 'mic-mute',
+      name: 'Mic Mute',
+      emoji: micMuted ? '🔇' : '🎙',
+      label: micMuted ? 'Mic Muted' : 'Mic Open',
+      active: micMuted,
+    },
+    {
+      id: 'standby-playpause',
+      name: 'Standby Play/Pause',
+      emoji: standbyPaused ? '▶' : '⏸',
+      label: standbyPaused ? 'Play Standby' : 'Pause Standby',
+      active: standbyPaused,
+    },
+    {
+      id: 'skip',
+      name: 'Skip Song',
+      emoji: '⏭',
+      label: 'Skip',
+      active: false,
+    },
+    {
+      id: 'restart',
+      name: 'Restart Song',
+      emoji: '⏮',
+      label: 'Restart',
+      active: false,
+    },
+    {
+      id: 'requeue',
+      name: 'Requeue',
+      emoji: '↩',
+      label: 'Requeue',
+      active: false,
+    },
+    {
+      id: 'standby-skip',
+      name: 'Standby Skip',
+      emoji: '⏭',
+      label: 'Skip Music',
+      active: false,
+    },
+  ];
+}
+
+function getEncDefs() {
+  const { videoVol, standbyVol, micVol } = state;
+  return [
+    {
+      id: 'video-vol',
+      label: 'Karaoke Music',
+      value: `${Math.round(videoVol)}%`,
+      indicatorPct: videoVol,
+      accentColor: colours['video-vol'],
+    },
+    {
+      id: 'standby-vol',
+      label: 'Standby Music',
+      value: `${Math.round(standbyVol)}%`,
+      indicatorPct: standbyVol,
+      accentColor: colours['standby-vol'],
+    },
+    {
+      id: 'mic-vol',
+      label: 'Mic Volume',
+      value: `${Math.round(micVol)}%`,
+      indicatorPct: micVol,
+      accentColor: colours['mic-vol'],
+    },
+  ];
+}
+
+// ============================================================
+//  RENDER
+// ============================================================
+
+function renderAll() {
+  const keySize = 72 * displayScale;
+  const keyGrid = document.getElementById('key-grid');
+  keyGrid.innerHTML = '';
+
+  getKeyDefs().forEach(def => {
+    const cell = document.createElement('div');
+    cell.className = 'btn-cell';
+    cell.title = def.name;
+    cell.dataset.id = def.id;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'btn-canvas-wrap';
+    if (selectedId === def.id) wrap.style.outlineColor = 'var(--accent)';
+
+    const img = document.createElement('img');
+    img.width = keySize;
+    img.height = keySize;
+    img.style.display = 'block';
+    const svg = renderKeyButton({
+      emoji: def.emoji,
+      label: def.label,
+      sublabel: def.sublabel,
+      accentColor: colours[def.id],
+      active: def.active,
+      size: keySize,
+    });
+    img.src = svgToImg(svg);
+
+    wrap.appendChild(img);
+
+    const name = document.createElement('div');
+    name.className = 'btn-name';
+    name.textContent = def.name;
+
+    const badge = document.createElement('div');
+    badge.className = 'btn-state-badge' + (def.active ? ' on' : '');
+    badge.textContent = def.active ? 'ACTIVE' : 'idle';
+
+    cell.appendChild(wrap);
+    cell.appendChild(name);
+    cell.appendChild(badge);
+    keyGrid.appendChild(cell);
+  });
+
+  const encW = 200 * displayScale;
+  const encH = 100 * displayScale;
+  const encGrid = document.getElementById('enc-grid');
+  encGrid.innerHTML = '';
+
+  getEncDefs().forEach(def => {
+    const cell = document.createElement('div');
+    cell.className = 'enc-cell';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'enc-canvas-wrap';
+
+    const img = document.createElement('img');
+    img.width = encW;
+    img.height = encH;
+    img.style.display = 'block';
+    const svg = renderEncoderStrip({ ...def, width: encW, height: encH });
+    img.src = svgToImg(svg);
+
+    const label = document.createElement('div');
+    label.className = 'btn-name';
+    label.textContent = def.label;
+
+    wrap.appendChild(img);
+    cell.appendChild(wrap);
+    cell.appendChild(label);
+    encGrid.appendChild(cell);
+  });
+}
+
+// ============================================================
+//  COLOUR SWATCHES
+// ============================================================
+
+function buildSwatches() {
+  const panel = document.getElementById('swatch-panel');
+  panel.innerHTML = '';
+  const entries = [
+    ['toggle-pause','Play/Pause'], ['skip','Skip'], ['restart','Restart'],
+    ['requeue','Requeue'], ['player-mode','Player Mode'],
+    ['standby-playpause','Standby Music'], ['standby-skip','Standby Skip'],
+    ['mic-mute','Mic Mute'], ['video-vol','Video Vol'],
+    ['standby-vol','Standby Vol'], ['mic-vol','Mic Vol'],
+  ];
+  entries.forEach(([id, label]) => {
+    const row = document.createElement('div');
+    row.className = 'swatch-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'swatch-label';
+    lbl.textContent = label;
+    const picker = document.createElement('input');
+    picker.type = 'color';
+    picker.value = colours[id];
+    picker.addEventListener('input', e => {
+      colours[id] = e.target.value;
+      renderAll();
+    });
+    row.appendChild(lbl);
+    row.appendChild(picker);
+    panel.appendChild(row);
+  });
+}
+
+// ============================================================
+//  INTERACTIONS
+// ============================================================
+
+// Click button to toggle state
+document.getElementById('key-grid').addEventListener('click', e => {
+  const cell = e.target.closest('.btn-cell');
+  if (!cell) return;
+  const id = cell.dataset.id;
+  selectedId = id;
+  switch(id) {
+    case 'toggle-pause':    state.paused = !state.paused; break;
+    case 'player-mode':     state.karaoke = !state.karaoke; break;
+    case 'mic-mute':        state.micMuted = !state.micMuted; break;
+    case 'standby-playpause': state.standbyPaused = !state.standbyPaused; break;
+  }
+  syncControlsFromState();
+  renderAll();
+});
+
+function syncControlsFromState() {
+  document.getElementById('st-paused').checked        = state.paused;
+  document.getElementById('st-nowplaying').checked    = state.nowPlaying;
+  document.getElementById('st-mode').checked          = state.karaoke;
+  document.getElementById('mode-label').textContent   = state.karaoke ? 'Karaoke' : 'Standby';
+  document.getElementById('st-standbypaused').checked = state.standbyPaused;
+  document.getElementById('st-micmuted').checked      = state.micMuted;
+}
+
+function bindToggle(id, stateKey, extra) {
+  document.getElementById(id).addEventListener('change', e => {
+    state[stateKey] = e.target.checked;
+    if (extra) extra(e.target.checked);
+    renderAll();
+  });
+}
+function bindRange(id, stateKey, labelId) {
+  document.getElementById(id).addEventListener('input', e => {
+    state[stateKey] = Number(e.target.value);
+    document.getElementById(labelId).textContent = e.target.value;
+    renderAll();
+  });
+}
+
+bindToggle('st-paused',       'paused');
+bindToggle('st-nowplaying',   'nowPlaying');
+bindToggle('st-mode',         'karaoke', v => {
+  document.getElementById('mode-label').textContent = v ? 'Karaoke' : 'Standby';
+});
+bindToggle('st-standbypaused','standbyPaused');
+bindToggle('st-micmuted',     'micMuted');
+bindRange('st-vidvol',   'videoVol',   'lbl-vidvol');
+bindRange('st-standvol', 'standbyVol', 'lbl-standvol');
+bindRange('st-micvol',   'micVol',     'lbl-micvol');
+
+document.getElementById('ctl-scale').addEventListener('input', e => {
+  displayScale = Number(e.target.value);
+  document.getElementById('lbl-scale').textContent = displayScale + '×';
+  renderAll();
+});
+
+// Export SVG
+document.getElementById('btn-export').addEventListener('click', () => {
+  const out = document.getElementById('export-out');
+  if (!selectedId) { out.textContent = 'Click a button first to select it.'; return; }
+  const def = getKeyDefs().find(d => d.id === selectedId);
+  if (!def) { out.textContent = 'Select a key button (not an encoder).'; return; }
+  const svg = renderKeyButton({
+    emoji: def.emoji, label: def.label,
+    accentColor: colours[selectedId], active: def.active, size: 72
+  });
+  navigator.clipboard.writeText(svg).then(() => {
+    out.textContent = '✓ SVG copied to clipboard (72×72, ready for setImage)';
+  }).catch(() => {
+    out.textContent = svg;
+  });
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+buildSwatches();
+renderAll();
+</script>
+</body>
+</html>

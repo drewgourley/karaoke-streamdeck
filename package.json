@@ -7,8 +7,7 @@
     "icons": "node scripts/create-icons.mjs",
     "build": "node scripts/create-icons.mjs && rollup -c --bundleConfigAsCjs",
     "watch": "rollup -c --bundleConfigAsCjs -w",
-    "link": "streamdeck link com.karaokebrowser.plugin.sdPlugin",
-    "preview": "npx serve preview --listen 4455"
+    "link": "streamdeck link com.karaokebrowser.plugin.sdPlugin"
   },
   "dependencies": {
     "@elgato/streamdeck": "^2.1.0",
